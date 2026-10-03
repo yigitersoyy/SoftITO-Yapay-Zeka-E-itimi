@@ -1,0 +1,200 @@
+birim_fiyat = 45.50
+adet = 4
+toplam_tutar = birim_fiyat * adet
+print(f"Toplam Tutar: {toplam_tutar} TL")
+
+maas = 8000
+maas += 1500
+print(f"Yeni Maaş: {maas} TL")
+
+yas = int(input("Yaşınızı girin: "))
+ogrenci_mi = input("Öğrenci misiniz? (e/h): ").strip().lower()
+
+if yas > 65:
+    print("Ücretsiz")
+else:
+    if ogrenci_mi == "e":
+        print("İndirimli")
+    else:
+        print("Tam ücret")
+
+sayi = int(input("Bir sayı girin: "))
+if sayi > 0:
+    if sayi % 2 == 0:
+        print("Sayı hem pozitif hem de çifttir.")
+    else:
+        print("Sayı pozitiftir ancak tek sayıdır.")
+else:
+    print("Sayı pozitif değildir.")
+
+sicaklik = float(input("Hava sıcaklığını girin (°C): "))
+if sicaklik > 30:
+    print("Sıcak")
+elif 15 <= sicaklik <= 30:
+    print("Ilıman")
+else:
+    print("Soğuk")
+
+ay = int(input("Ay numarası girin (1-12): "))
+if ay in [12, 1, 2]:
+    print("Kış")
+elif ay in [3, 4, 5]:
+    print("İlkbahar")
+elif ay in [6, 7, 8]:
+    print("Yaz")
+elif ay in [9, 10, 11]:
+    print("Sonbahar")
+else:
+    print("Geçersiz ay numarası.")
+
+sayilar = [5, 15, 8, 22, 3, 19]
+en_buyuk = sayilar[0]
+
+for s in sayilar:
+    if s > en_buyuk:
+        en_buyuk = s
+print(f"En büyük sayı: {en_buyuk}")
+
+adet_on_uzeri = 0
+for s in sayilar:
+    if s > 10:
+        adet_on_uzeri += 1
+print(f"10'dan büyük sayı adedi: {adet_on_uzeri}")
+
+sayac = 10
+while sayac >= 1:
+    print(sayac, end=" ")
+    sayac -= 1
+print()
+
+dogru_sifre = "python123"
+girilen_sifre = ""
+
+while girilen_sifre != dogru_sifre:
+    girilen_sifre = input("Şifrenizi girin: ")
+    if girilen_sifre != dogru_sifre:
+        print("Hatalı şifre, tekrar deneyin.")
+print("Giriş başarılı!")
+
+for sayi in range(1, 21):
+    if sayi % 3 == 0:
+        print(sayi, end=" ")
+print()
+
+karisik_sayilar = [-12, 7, -3, 0, 14, -1, 25]
+pozitifler = []
+negatifler = []
+
+for s in karisik_sayilar:
+    if s > 0:
+        pozitifler.append(s)
+    elif s < 0:
+        negatifler.append(s)
+
+print(f"Pozitif sayılar: {pozitifler}")
+print(f"Negatif sayılar: {negatifler}")
+
+def kup_al(sayi):
+    return sayi ** 3
+
+def topla(a, b):
+    return a + b
+
+print("4'ün küpü:", kup_al(4))
+print("12 + 18 =", topla(12, 18))
+
+def sayi_durumu(sayi):
+    if sayi > 0:
+        return "Pozitif"
+    elif sayi < 0:
+        return "Negatif"
+    return "Sıfır"
+
+def en_buyuk_uc(a, b, c):
+    if a >= b and a >= c:
+        return a
+    elif b >= a and b >= c:
+        return b
+    return c
+
+print(sayi_durumu(-7))
+print("En büyük:", en_buyuk_uc(14, 42, 29))
+
+sehirler = []
+for i in range(1, 6):
+    sehir = input(f"{i}. şehri girin: ")
+    sehirler.append(sehir)
+
+for sira, sehir in enumerate(sehirler, start=1):
+    print(f"{sira}. {sehir}")
+
+urunler = ["Laptop", "Klavye", "Mouse", "Monitör"]
+print(f"Mevcut ürünler: {urunler}")
+silinecek = input("Silmek istediğiniz ürünü yazın: ")
+
+if silinecek in urunler:
+    urunler.remove(silinecek)
+    print(f"Güncel liste: {urunler}")
+else:
+    print("Ürün listede bulunamadı.")
+
+ad = input("Adınız: ")
+soyad = input("Soyadınız: ")
+dogum_yili = int(input("Doğum yılınız: "))
+yas = 2026 - dogum_yili
+print(f"Merhaba {ad} {soyad}, 2026 yılı itibarıyla yaşınız: {yas}")
+
+boy_cm = float(input("Boyunuz (cm): "))
+kilo = float(input("Kilonuz (kg): "))
+boy_m = boy_cm / 100
+bmi = kilo / (boy_m ** 2)
+print(f"Vücut Kitle İndeksiniz (BMI): {bmi:.2f}")
+
+notlar = []
+for i in range(1, 5):
+    not_degeri = float(input(f"{i}. ders notunu girin: "))
+    notlar.append(not_degeri)
+
+ortalama = sum(notlar) / len(notlar)
+en_yuksek = max(notlar)
+en_dusuk = min(notlar)
+
+if ortalama >= 90:
+    harf = "AA"
+elif ortalama >= 85:
+    harf = "BA"
+elif ortalama >= 80:
+    harf = "BB"
+elif ortalama >= 75:
+    harf = "CB"
+elif ortalama >= 70:
+    harf = "CC"
+elif ortalama >= 60:
+    harf = "DC"
+elif ortalama >= 50:
+    harf = "DD"
+else:
+    harf = "FF"
+
+print(f"Ortalama: {ortalama:.2f} | Harf Notu: {harf}")
+print(f"En Yüksek Not: {en_yuksek} | En Düşük Not: {en_dusuk}")
+
+sepet = [
+    {"urun": "Kablosuz Kulaklık", "fiyat": 320},
+    {"urun": "USB Kablo", "fiyat": 60},
+    {"urun": "Termos", "fiyat": 190},
+    {"urun": "Defter", "fiyat": 45}
+]
+
+pahali_urunler = [item["urun"] for item in sepet if item["fiyat"] > 100]
+print(f"100 TL üzeri ürünler: {pahali_urunler}")
+
+toplam_tutar = sum(item["fiyat"] for item in sepet)
+print(f"Ara Toplam: {toplam_tutar} TL")
+
+if toplam_tutar > 500:
+    indirimli_tutar = toplam_tutar * 0.90
+    print("%10 indirim kazandınız!")
+    print(f"Ödenecek Tutar: {indirimli_tutar:.2f} TL")
+else:
+    print(f"Ödenecek Tutar: {toplam_tutar:.2f} TL")
