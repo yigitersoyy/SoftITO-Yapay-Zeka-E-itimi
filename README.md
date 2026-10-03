@@ -1,0 +1,1 @@
+# SoftITO-Yapay-Zeka-E-itimi
