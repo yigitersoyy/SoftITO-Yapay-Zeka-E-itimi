@@ -1,0 +1,51 @@
+class Araba:
+    def __init__(self, marka: str, model: str, hiz: float = 0.0):
+        self.marka = marka
+        self.model = model
+        self.hiz = hiz
+
+    def hizlandir(self, artis: float):
+        if artis > 0:
+            self.hiz += artis
+
+    def bilgi_goster(self):
+        print(f"Marka: {self.marka} | Model: {self.model} | Hız: {self.hiz} km/s")
+
+
+class Dikdortgen:
+    def __init__(self, uzunluk: float, genislik: float):
+        self.uzunluk = uzunluk
+        self.genislik = genislik
+
+    def alan_hesapla(self) -> float:
+        return self.uzunluk * self.genislik
+
+    def cevre_hesapla(self) -> float:
+        return 2 * (self.uzunluk + self.genislik)
+
+
+class Kitap:
+    def __init__(self, ad: str, yazar: str, sayfa_sayisi: int):
+        self.ad = ad
+        self.yazar = yazar
+        self.sayfa_sayisi = sayfa_sayisi
+
+    def ozet(self) -> str:
+        return f"{self.ad} - {self.yazar} ({self.sayfa_sayisi} sayfa)"
+
+
+# Araba testi
+araba = Araba("Volvo", "XC60", 60)
+araba.hizlandir(30)
+araba.bilgi_goster()
+# Çıktı: Marka: Volvo | Model: XC60 | Hız: 90 km/s
+
+# Dikdörtgen testi
+dikdortgen = Dikdortgen(10, 5)
+print("Alan:", dikdortgen.alan_hesapla())   # Çıktı: 50
+print("Çevre:", dikdortgen.cevre_hesapla()) # Çıktı: 30
+
+# Kitap testi
+kitap = Kitap("Suç ve Ceza", "Dostoyevski", 671)
+print(kitap.ozet())
+# Çıktı: Suç ve Ceza - Dostoyevski (671 sayfa)
