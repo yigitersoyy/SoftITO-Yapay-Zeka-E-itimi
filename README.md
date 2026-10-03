@@ -1,1 +1,1 @@
-# SoftITO-Yapay-Zeka-E-itimi
+# SoftITO-Yapay-Zeka-Egitimi
