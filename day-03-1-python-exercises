@@ -1,0 +1,99 @@
+print("Python öğreniyorum")
+print("Yiğit", "Ersoy")
+print(42)
+print("Merhaba Dünya")
+
+print("Kod çalışıyor")
+
+"""
+Ad: Yiğit
+Yaş: 24
+Şehir: İstanbul
+"""
+
+sehir = "İstanbul"
+print(sehir)
+
+puan = 50
+print("İlk puan:", puan)
+
+puan = 75
+print("Güncel puan:", puan)
+
+tam_sayi = 10
+ondalikli_sayi = 3.14
+metin = "Python"
+durum = True
+
+print(type(tam_sayi))
+print(type(ondalikli_sayi))
+print(type(metin))
+print(type(durum))
+
+print("Tipler aynı mı?:", type(10) == type("10"))
+
+print("Toplam:", 15 + 4)
+print("Fark:", 15 - 4)
+print("Çarpım:", 15 * 4)
+print("Bölüm:", 15 / 4)
+print("Kalan (Mod):", 17 % 5)
+print("2 üzeri 8:", 2 ** 8)
+
+ad = input("Adınızı girin: ")
+print(f"Merhaba, {ad}!")
+
+yas = int(input("Yaşınızı girin: "))
+print("10 yıl sonraki yaşınız:", yas + 10)
+
+a = 8
+b = 12
+
+print("a > b :", a > b)
+print("a < b :", a < b)
+print("a == b:", a == b)
+
+sayi_kontrol = int(input("Bir sayı girin: "))
+print("Sayı 100'e eşit mi?:", sayi_kontrol == 100)
+
+yas_degeri = 22
+ogrenci_mi = False
+
+print("and sonucu:", (yas_degeri > 18) and ogrenci_mi)
+print("or sonucu:", (yas_degeri > 18) or ogrenci_mi)
+print("not sonucu:", not ogrenci_mi)
+
+kayitli_mi = True
+print("Kayıt ve yaş uygun mu?:", (yas_degeri > 18) and kayitli_mi)
+
+girilen_sayi = float(input("Pozitif/Negatif kontrolü için bir sayı girin: "))
+if girilen_sayi > 0:
+    print("Sayı pozitif")
+elif girilen_sayi < 0:
+    print("Sayı negatif")
+else:
+    print("Sayı sıfır")
+
+not_bilgisi = float(input("Notunuzu girin (0-100): "))
+if not_bilgisi >= 50:
+    print("Geçti")
+else:
+    print("Kaldı")
+
+ad_degiskeni = "Yiğit"
+soyad_degiskeni = "Ersoy"
+tam_ad = ad_degiskeni + " " + soyad_degiskeni
+print("Tam Ad:", tam_ad)
+
+kelime = "Programlama"
+print("Harf sayısı:", len(kelime))
+
+yazi = "Python Dili"
+print("Büyük harf:", yazi.upper())
+print("Küçük harf:", yazi.lower())
+
+s1 = float(input("Çarpım için 1. sayıyı girin: "))
+s2 = float(input("Çarpım için 2. sayıyı girin: "))
+print("Çarpım sonucu:", s1 * s2)
+
+kare_sayisi = float(input("Karesi alınacak sayıyı girin: "))
+print("Karesi:", kare_sayisi ** 2)
