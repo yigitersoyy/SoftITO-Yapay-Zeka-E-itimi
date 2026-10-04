@@ -1,0 +1,248 @@
+*** Tabular ANN için: UCI Breast Cancer Wisconsin (Diagnostic) Veri Seti ve Zaman Serisi için: Sentetik Harmonik Seri (Sinüs + Gürültü) ve Yahoo Finance Microsoft (MSFT) Tarihsel Fiyat Verisi ***
+
+*** Keras ANN Sınıflandırma ***
+
+import os
+import random
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models, callbacks
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+SEED = 42
+os.environ['PYTHONHASHSEED'] = str(SEED)
+random.seed(SEED)
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+
+data = load_breast_cancer()
+X = data.data
+y = data.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=SEED, stratify=y
+)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+keras_model = models.Sequential([
+    layers.Input(shape=(X_train.shape[1],)),
+    layers.Dense(64, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(32, activation='relu'),
+    layers.Dropout(0.2),
+    layers.Dense(1, activation='sigmoid')
+])
+
+keras_model.summary()
+
+keras_model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+early_stopping = callbacks.EarlyStopping(
+    monitor='val_loss',
+    patience=5,
+    restore_best_weights=True
+)
+
+keras_model.fit(
+    X_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    callbacks=[early_stopping]
+)
+
+k_loss, k_acc = keras_model.evaluate(X_test, y_test)
+print(f"Keras Test Loss: {k_loss:.4f} | Keras Test Accuracy: {k_acc:.4f}")
+
+
+
+
+*** PyTorch ANN Sınıflandırma *** 
+
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader, random_split
+
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
+
+full_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+train_size = int(0.8 * len(full_dataset))
+val_size = len(full_dataset) - train_size
+train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
+
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(TensorDataset(X_test_tensor, y_test_tensor), batch_size=32, shuffle=False)
+
+class PyTorchANN(nn.Module):
+    def __init__(self, input_dim):
+        super(PyTorchANN, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(32, 1)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+torch_ann = PyTorchANN(X_train.shape[1]).to(device)
+criterion = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.Adam(torch_ann.parameters(), lr=0.001)
+
+def compute_torch_accuracy(logits, targets):
+    probabilities = torch.sigmoid(logits)
+    predictions = (probabilities >= 0.5).float()
+    return (predictions == targets).float().mean().item()
+
+for epoch in range(20):
+    torch_ann.train()
+    running_loss, running_acc = 0.0, 0.0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = torch_ann(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item() * inputs.size(0)
+        running_acc += compute_torch_accuracy(outputs, labels) * inputs.size(0)
+    
+    epoch_train_loss = running_loss / len(train_loader.dataset)
+    epoch_train_acc = running_acc / len(train_loader.dataset)
+
+    torch_ann.eval()
+    val_loss, val_acc = 0.0, 0.0
+    with torch.no_grad():
+        for inputs, labels in val_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = torch_ann(inputs)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item() * inputs.size(0)
+            val_acc += compute_torch_accuracy(outputs, labels) * inputs.size(0)
+
+    epoch_val_loss = val_loss / len(val_loader.dataset)
+    epoch_val_acc = val_acc / len(val_loader.dataset)
+    print(f"Epoch {epoch+1}/20 - Train Loss: {epoch_train_loss:.4f}, Train Acc: {epoch_train_acc:.4f} | Val Loss: {epoch_val_loss:.4f}, Val Acc: {epoch_val_acc:.4f}")
+
+torch_ann.eval()
+t_loss, t_acc = 0.0, 0.0
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        outputs = torch_ann(inputs)
+        loss = criterion(outputs, labels)
+        t_loss += loss.item() * inputs.size(0)
+        t_acc += compute_torch_accuracy(outputs, labels) * inputs.size(0)
+
+final_test_loss = t_loss / len(test_loader.dataset)
+final_test_acc = t_acc / len(test_loader.dataset)
+print(f"PyTorch Test Loss: {final_test_loss:.4f} | PyTorch Test Accuracy: {final_test_acc:.4f}")
+
+
+
+*** Zaman Serisi Sekansları ve LSTM / GRU Modellemesi *** 
+
+import pandas as pd
+import yfinance as yf
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+
+steps = 2000
+time = np.linspace(0, 50, steps)
+series = np.sin(time) + np.sin(time * 0.5) + np.random.normal(0, 0.1, steps)
+
+scaler_ts = MinMaxScaler(feature_range=(0, 1))
+scaled_series = scaler_ts.fit_transform(series.reshape(-1, 1))
+
+def make_windows(data, input_steps, output_steps):
+    X_seq, y_seq = [], []
+    for i in range(len(data) - input_steps - output_steps + 1):
+        X_seq.append(data[i:i + input_steps])
+        y_seq.append(data[i + input_steps:i + input_steps + output_steps])
+    return np.array(X_seq), np.array(y_seq)
+
+INPUT_STEPS = 60
+OUTPUT_STEPS = 1
+X_all, y_all = make_windows(scaled_series, INPUT_STEPS, OUTPUT_STEPS)
+
+split_ratio = int(len(X_all) * 0.8)
+train_X, test_X = X_all[:split_ratio], X_all[split_ratio:]
+train_y, test_y = y_all[:split_ratio], y_all[split_ratio:]
+n_features = train_X.shape[2]
+
+print(f"train_X: {train_X.shape}, train_y: {train_y.shape}")
+print(f"test_X: {test_X.shape}, test_y: {test_y.shape}")
+print(f"Feature count: {n_features}")
+
+def build_rnn_model(cell_type='LSTM', input_steps=60, features=1, output_steps=1):
+    rnn_model = models.Sequential()
+    if cell_type == 'LSTM':
+        rnn_model.add(layers.LSTM(64, return_sequences=True, input_shape=(input_steps, features)))
+        rnn_model.add(layers.LSTM(32))
+    elif cell_type == 'GRU':
+        rnn_model.add(layers.GRU(64, return_sequences=True, input_shape=(input_steps, features)))
+        rnn_model.add(layers.GRU(32))
+    rnn_model.add(layers.Dense(output_steps))
+    rnn_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    return rnn_model
+
+lstm_model = build_rnn_model('LSTM', INPUT_STEPS, n_features, OUTPUT_STEPS)
+lstm_model.fit(train_X, train_y, epochs=20, batch_size=32, validation_data=(test_X, test_y))
+
+gru_model = build_rnn_model('GRU', INPUT_STEPS, n_features, OUTPUT_STEPS)
+gru_model.fit(train_X, train_y, epochs=20, batch_size=32, validation_data=(test_X, test_y))
+
+predictions = gru_model.predict(test_X)
+predictions_rescaled = scaler_ts.inverse_transform(predictions)
+actuals_rescaled = scaler_ts.inverse_transform(test_y.reshape(-1, 1))
+
+mse = mean_squared_error(actuals_rescaled, predictions_rescaled)
+mae = mean_absolute_error(actuals_rescaled, predictions_rescaled)
+print(f"GRU Test MSE: {mse:.4f} | GRU Test MAE: {mae:.4f}")
+
+msft_ticker = yf.Ticker("MSFT")
+msft_history = msft_ticker.history(period="5y")
+print(msft_history.head())
+
+msft_close = msft_history[['Close']].values
+scaler_finance = MinMaxScaler(feature_range=(0, 1))
+scaled_msft = scaler_finance.fit_transform(msft_close)
+
+FIN_INPUT = 60
+FIN_OUTPUT = 30
+X_fin, y_fin = make_windows(scaled_msft, FIN_INPUT, FIN_OUTPUT)
+
+fin_split = int(len(X_fin) * 0.8)
+train_X_fin, test_X_fin = X_fin[:fin_split], X_fin[fin_split:]
+train_y_fin, test_y_fin = y_fin[:fin_split], y_fin[fin_split:]
+
+finance_lstm = models.Sequential([
+    layers.LSTM(64, return_sequences=True, input_shape=(FIN_INPUT, train_X_fin.shape[2])),
+    layers.LSTM(32),
+    layers.Dense(FIN_OUTPUT)
+])
+finance_lstm.compile(optimizer='adam', loss='mse')
+finance_lstm.fit(train_X_fin, train_y_fin, epochs=1, batch_size=1, validation_data=(test_X_fin, test_y_fin))
