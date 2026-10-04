@@ -1,0 +1,96 @@
+import pandas as pd
+
+print(pd.__version__)
+
+sayilar = pd.Series([100, 200, 300, 400])
+print(sayilar)
+
+nufus = pd.Series(
+    [15840000, 5747000, 4425000, 2614000],
+    index=["İstanbul", "Ankara", "İzmir", "Bursa"],
+)
+print(nufus)
+print(nufus["İstanbul"])
+print(nufus.sum())
+
+urun_df = pd.DataFrame(
+    {
+        "urun": ["Laptop", "Klavye", "Fare", "Monitör", "Kulaklık"],
+        "fiyat": [25000, 1500, 600, 4500, 1200],
+        "stok": [15, 50, 80, 25, 40],
+    }
+)
+print(urun_df)
+
+ogrenciler = pd.DataFrame(
+    {
+        "isim": ["Ali", "Ayşe", "Mehmet", "Zeynep", "Can", "Elif"],
+        "yas": [21, 24, 26, 17, 28, 42],
+        "bolum": [
+            "Bilgisayar",
+            "Endüstri",
+            "Yazılım",
+            "Makine",
+            "Elektrik",
+            "Bilgisayar",
+        ],
+    }
+)
+print(ogrenciler)
+print(ogrenciler.shape)
+
+ogrenciler.to_csv("ogrenciler.csv", index=False)
+okunan_df = pd.read_csv("ogrenciler.csv")
+print(okunan_df)
+ogrenciler.to_csv("ogrenciler_indexli.csv", index=True)
+
+print(ogrenciler.head(3))
+print(ogrenciler.tail(2))
+print(ogrenciler.shape)
+ogrenciler.info()
+print(ogrenciler["yas"].describe())
+
+print(ogrenciler["isim"])
+print(ogrenciler[["isim", "yas"]])
+print(ogrenciler.loc[0:2])
+print(ogrenciler.iloc[1, 1])
+
+df = ogrenciler.copy()
+df["sehir"] = ["İstanbul", "Ankara", "İstanbul", "İzmir", "Bursa", "Ankara"]
+df["maas"] = [22000, 28000, 35000, 15000, 26000, 45000]
+
+print(df[df["yas"] > 25])
+print(df[(df["maas"] >= 20000) & (df["maas"] <= 30000)])
+print(df[df["sehir"] == "İstanbul"])
+print(df[(df["yas"] < 20) | (df["yas"] > 40)])
+
+df["dogum_yili"] = 2026 - df["yas"]
+df["maas"] = df["maas"] * 1.10
+df["durum"] = df["yas"].apply(lambda x: "Yetişkin" if x >= 18 else "Çocuk")
+print(df)
+
+print(df.sort_values(by="yas", ascending=True))
+print(df.sort_values(by="maas", ascending=False))
+print(df.sort_values(by=["sehir", "yas"], ascending=[True, True]))
+
+sinif = pd.DataFrame(
+    {
+        "isim": ["Ahmet", "Berna", "Cem", "Derya", "Emre", "Fulya"],
+        "yas": [22, 20, 24, 21, 23, 19],
+        "sehir": [
+            "İstanbul",
+            "Ankara",
+            "İzmir",
+            "İstanbul",
+            "Bursa",
+            "Eskişehir",
+        ],
+        "not1": [85, 60, 90, 65, 75, 50],
+        "not2": [70, 65, 80, 70, 85, 55],
+        "not3": [90, 55, 85, 60, 80, 60],
+    }
+)
+
+sinif["ortalama"] = (sinif["not1"] + sinif["not2"] + sinif["not3"]) / 3
+sonuc = sinif[sinif["ortalama"] > 70].sort_values(by="yas", ascending=True)
+print(sonuc)
