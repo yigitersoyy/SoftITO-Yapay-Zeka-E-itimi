@@ -1,0 +1,143 @@
+*** Wine Quality ***
+
+from sklearn.dummy import DummyClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_curve, auc, classification_report
+from sklearn.model_selection import StratifiedKFold, cross_val_score, GridSearchCV
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+df["is_good"] = (df["quality"] >= 7).astype(int)
+X_clf = df.drop(columns=["quality", "is_good"])
+y_clf = df["is_good"]
+
+print(f"Sınıf Dağılımı:\n{y_clf.value_counts(normalize=True)}")
+
+Xc_train, Xc_test, yc_train, yc_test = train_test_split(
+    X_clf, y_clf, test_size=0.20, random_state=SEED, stratify=y_clf
+)
+
+classifiers = {
+    "Baseline (Majority)": DummyClassifier(strategy="most_frequent"),
+    "Logistic Regression": Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression(random_state=SEED))]),
+    "KNN": Pipeline([("scaler", StandardScaler()), ("clf", KNeighborsClassifier(n_neighbors=5))]),
+    "Decision Tree": DecisionTreeClassifier(max_depth=5, random_state=SEED),
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=SEED)
+}
+
+clf_scores = []
+for name, clf in classifiers.items():
+    clf.fit(Xc_train, yc_train)
+    train_acc = accuracy_score(yc_train, clf.predict(Xc_train))
+    test_acc = accuracy_score(yc_test, clf.predict(Xc_test))
+    clf_scores.append({"Model": name, "Train Accuracy": train_acc, "Test Accuracy": test_acc})
+
+scores_df = pd.DataFrame(clf_scores).set_index("Model")
+print("\n--- Sınıflandırma Doğruluk Skorları ---")
+display(scores_df)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+log_reg = classifiers["Logistic Regression"]
+cm = confusion_matrix(yc_test, log_reg.predict(Xc_test))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=axes[0], cbar=False)
+axes[0].set_title("Confusion Matrix (Logistic Regression)")
+axes[0].set_xlabel("Tahmin Edilen Sınıf")
+axes[0].set_ylabel("Gerçek Sınıf")
+
+for name, clf in classifiers.items():
+    if hasattr(clf, "predict_proba"):
+        probs = clf.predict_proba(Xc_test)[:, 1]
+    else:
+        probs = clf.predict(Xc_test)
+    fpr, tpr, _ = roc_curve(yc_test, probs)
+    roc_auc = auc(fpr, tpr)
+    axes[1].plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
+
+axes[1].plot([0, 1], [0, 1], "k--")
+axes[1].set_title("ROC-AUC Eğrisi Karşılaştırması")
+axes[1].set_xlabel("Yanlış Pozitif Oranı (FPR)")
+axes[1].set_ylabel("Doğru Pozitif Oranı (TPR)")
+axes[1].legend(loc="lower right")
+plt.tight_layout()
+plt.show()
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+cv_results = {}
+for name, clf in classifiers.items():
+    scores = cross_val_score(clf, Xc_train, yc_train, cv=cv, scoring="accuracy")
+    cv_results[name] = {"CV Ortalama Accuracy": scores.mean(), "Standart Sapma": scores.std()}
+
+print("\n--- 5-Katlı Çapraz Doğrulama Sonuçları ---")
+display(pd.DataFrame(cv_results).T)
+
+knn_pipe = Pipeline([("scaler", StandardScaler()), ("knn", KNeighborsClassifier())])
+param_grid = {
+    "knn__n_neighbors": [3, 5, 7, 9, 11, 15],
+    "knn__weights": ["uniform", "distance"]
+}
+grid_search = GridSearchCV(knn_pipe, param_grid, cv=cv, scoring="roc_auc")
+grid_search.fit(Xc_train, yc_train)
+print(f"En İyi KNN Parametreleri: {grid_search.best_params_}")
+print(f"En İyi CV ROC-AUC Skoru: {grid_search.best_score_:.4f}")
+
+scaler_wrong = StandardScaler()
+X_leak_scaled = scaler_wrong.fit_transform(X_clf)
+wrong_train_mean = X_leak_scaled[:len(Xc_train)].mean(axis=0)[0]
+
+scaler_correct = StandardScaler()
+Xc_train_scaled = scaler_correct.fit_transform(Xc_train)
+correct_train_mean = Xc_train_scaled.mean(axis=0)[0]
+
+print("\n--- Veri Sızıntısı Karşılaştırması ---")
+print(f"Yanlış Ölçekleme Eğitim Kümesi Ortalaması (İlk Sütun): {wrong_train_mean:.6f}")
+print(f"Doğru Ölçekleme Eğitim Kümesi Ortalaması (İlk Sütun): {correct_train_mean:.6f}")
+
+degrees = list(range(1, 6))
+train_errors, test_errors = [], []
+
+X_poly_train = X_train_r[["alcohol"]]
+X_poly_test = X_test_r[["alcohol"]]
+
+for d in degrees:
+    poly_pipe = Pipeline([
+        ("poly", PolynomialFeatures(degree=d)),
+        ("reg", LinearRegression())
+    ])
+    poly_pipe.fit(X_poly_train, y_train_r)
+    train_errors.append(mean_squared_error(y_train_r, poly_pipe.predict(X_poly_train)))
+    test_errors.append(mean_squared_error(y_test_r, poly_pipe.predict(X_poly_test)))
+
+plt.figure(figsize=(8, 4))
+plt.plot(degrees, train_errors, label="Eğitim MSE", marker="o")
+plt.plot(degrees, test_errors, label="Test MSE", marker="s", color="red")
+plt.xlabel("Polinom Derecesi")
+plt.ylabel("Hata (MSE)")
+plt.title("Model Karmaşıklığı: Eksik Uyum vs. Aşırı Uyum")
+plt.legend()
+plt.show()
+
+scaled_features = StandardScaler().fit_transform(X_clf)
+k_values = range(2, 9)
+inertias, sil_scores = [], []
+
+for k in k_values:
+    kmeans = KMeans(n_clusters=k, random_state=SEED, n_init=10)
+    kmeans.fit(scaled_features)
+    inertias.append(kmeans.inertia_)
+    sil_scores.append(silhouette_score(scaled_features, kmeans.labels_))
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+axes[0].plot(k_values, inertias, marker="o", color="purple")
+axes[0].set_title("Elbow Metodu (Inertia)")
+axes[0].set_xlabel("Küme Sayısı (k)")
+
+axes[1].plot(k_values, sil_scores, marker="s", color="teal")
+axes[1].set_title("Silhouette Skoru Analizi")
+axes[1].set_xlabel("Küme Sayısı (k)")
+plt.tight_layout()
+plt.show()
