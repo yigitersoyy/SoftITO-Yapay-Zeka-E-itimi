@@ -15,6 +15,7 @@ Day-by-day coursework from the AI Specialist Program (320 hours) at Soft-ITo Sof
 | 7 | 22 Sep 2026 | Abalone regression (UCI), positive regression on a Statlog dataset (UCI), linear / polynomial / logistic regression examples | [day-07-regression-types](day-07-regression-types) |
 | 8 | 23 Sep 2026 | Decision Trees and Random Forest (Kaggle dataset) | [day-08-decision-trees-random-forest](day-08-decision-trees-random-forest) |
 | 9 | 24 Sep 2026 | Keras | [day-09-keras](day-09-keras) |
+| 10 | 25 Sep 2026 | NLP | [day-10-nlp](day-10-nlp) |
 
 ## Tools
 
