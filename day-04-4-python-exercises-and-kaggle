@@ -1,0 +1,116 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+pd.Series(df['wks'].head(5).values)
+pd.Series(df['total'].head(3).values, index=df['artist name'].head(3).values)
+pd.Series(df['PkStreams'].head(3).values, index=df['song name'].head(3).values)
+
+pd.DataFrame({'artist': df['artist name'].head(3), 'song': df['song name'].head(3), 'wks': df['wks'].head(3)})
+
+df = pd.read_csv('data.csv')
+df_new = pd.read_csv('data.csv')
+
+df.head(2)
+df_new.head(2)
+df_new.tail(2)
+df_new.shape
+df_new.columns.tolist()
+df.info()
+df.describe()
+
+df = pd.read_csv('data.csv')
+df.head(2)
+df.tail(2)
+df.shape
+df.columns.tolist()
+df.info()
+df.describe()
+
+df['wks']
+df[['wks', 'pk']]
+df.loc[0]
+df.loc[0:2]
+df.iloc[0]
+df.iloc[0:3, 0:2]
+
+df[df['wks'] < 100]
+
+df['yeni_sutun'] = df['wks'] * 12
+df[['wks', 'yeni_sutun']]
+
+df.sort_values(by='wks', ascending=True)
+df.sort_values(by='t10', ascending=False)
+df.info()
+
+df.isnull().sum()
+df2 = df.fillna(0)
+df2.isnull().sum()
+df3 = df.dropna()
+df3.shape
+df.shape
+
+df_songs = df[['song name', 'artist name']].drop_duplicates().head(5)
+df_stats = df[['song name', 'total', 'wks']].head(5)
+
+pd.merge(df_songs, df_stats, on='song name', how='inner')
+pd.merge(df_songs, df_stats, on='song name', how='left')
+pd.merge(df_songs, df_stats, on='song name', how='outer')
+
+df.groupby('artist name')['total'].mean()
+df.groupby('artist name')['total'].sum()
+df.groupby('artist name')['song name'].count()
+
+df1 = df.head(3)
+df2 = df.tail(3)
+pd.concat([df1, df2], ignore_index=True)
+
+df3_cols = df[['lyrics']].head(3)
+pd.concat([df1.reset_index(drop=True), df3_cols.reset_index(drop=True)], axis=1)
+
+pd.pivot_table(df.head(100), values='total', index='artist name', columns='pk', aggfunc='mean')
+df.head(100)
+
+df['artist_upper'] = df['artist name'].astype(str).apply(lambda x: x.upper())
+df[['artist name', 'artist_upper']].head()
+
+df_str = pd.DataFrame({'pk_str': df['pk'].astype(str).head(5), 'wks_str': df['wks'].astype(str).head(5)})
+df_str.dtypes
+df_str['pk_str'] = df_str['pk_str'].astype(int)
+df_str.dtypes
+df_str['wks_str'] = df_str['wks_str'].astype(float)
+
+top_wks_trend = df.sort_values(by='wks', ascending=False).head(5)
+plt.figure()
+plt.plot(top_wks_trend['song name'], top_wks_trend['wks'], marker='o', color='blue')
+plt.title('Top 5 Songs by Weeks on Chart')
+plt.xlabel('Song Name')
+plt.ylabel('Weeks')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
+
+top_artists_total = df.groupby('artist name')['total'].sum().sort_values(ascending=False).head(5)
+plt.figure()
+plt.bar(top_artists_total.index, top_artists_total.values, color='skyblue')
+plt.title('Top 5 Artists by Total Streams')
+plt.xlabel('Artist')
+plt.ylabel('Streams')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
+
+plt.figure()
+plt.pie(top_artists_total.values, labels=top_artists_total.index, autopct='%1.1f%%')
+plt.title('Top 5 Artists Total Stream Share')
+plt.tight_layout()
+plt.show()
+
+sample_df = df.head(100)
+plt.figure()
+plt.scatter(sample_df['wks'], sample_df['total'], color='purple', alpha=0.6)
+plt.title('Weeks on Chart vs Total Streams')
+plt.xlabel('Weeks')
+plt.ylabel('Total Streams')
+plt.tight_layout()
+plt.show()
