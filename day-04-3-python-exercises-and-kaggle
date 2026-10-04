@@ -1,0 +1,114 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from scipy import stats
+
+np.random.seed(42)
+
+sns.set_theme(style="whitegrid", palette="tab10")
+plt.rcParams["figure.figsize"] = (10, 6)
+plt.rcParams["font.size"] = 11
+
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", 100)
+pd.set_option("display.float_format", "{:.2f}".format)
+
+n = 1000
+
+sehir_havuzu = [
+    "İstanbul", "istanbul", "İSTANBUL", " İstanbul ",
+    "Ankara", "ANKARA", " ankara", "Ankara ",
+    "İzmir", "izmir", " İZMİR", "Bursa", "Antalya"
+]
+
+data = {
+    "yas": np.random.randint(18, 70, size=n),
+    "gelir": np.random.normal(loc=45000, scale=12000, size=n).round(2),
+    "sehir": np.random.choice(sehir_havuzu, size=n),
+    "abonelik_tipi": np.random.choice(["Temel", "Standart", "Premium"], size=n, p=[0.5, 0.3, 0.2]),
+    "kayit_tarihi": pd.date_range(start="2022-01-01", periods=n, freq="D"),
+    "aylik_harcama": np.random.uniform(100, 2500, size=n).round(2),
+    "memnuniyet_puani": np.random.choice([1, 2, 3, 4, 5], size=n, p=[0.05, 0.1, 0.25, 0.4, 0.2]),
+    "churn": np.random.choice([0, 1], size=n, p=[0.8, 0.2])
+}
+
+df = pd.DataFrame(data)
+
+df.loc[df.sample(frac=0.08).index, "gelir"] = np.nan
+df.loc[df.sample(frac=0.05).index, "yas"] = np.nan
+df.loc[df.sample(frac=0.03).index, "memnuniyet_puani"] = np.nan
+
+df.loc[df.sample(5).index, "gelir"] = [350000.0, 500000.0, 750000.0, 420000.0, 600000.0]
+df.loc[df.sample(4).index, "yas"] = [-5, 150, -1, 135]
+
+df = pd.concat([df, df.sample(20, random_state=42)], ignore_index=True)
+
+print(df.shape)
+df.info()
+
+print(df.head(5))
+print(df.tail(5))
+print(df.sample(5))
+
+eksik_ozet = pd.DataFrame({
+    "Eksik Sayisi": df.isnull().sum(),
+    "Eksik Orani (%)": (df.isnull().sum() / len(df) * 100),
+    "Benzersiz Deger": df.nunique()
+}).sort_values(by="Eksik Orani (%)", ascending=False)
+print(eksik_ozet)
+
+plt.figure(figsize=(10, 4))
+sns.heatmap(df.isnull(), cbar=False, yticklabels=False, cmap="viridis")
+plt.show()
+
+print(df.duplicated().sum())
+print(df[df.duplicated(keep=False)].head(6))
+
+print(df["sehir"].value_counts(dropna=False))
+
+df["sehir"] = (
+    df["sehir"]
+    .astype(str)
+    .str.strip()
+    .str.replace("İ", "i")
+    .str.lower()
+)
+
+print(df["sehir"].value_counts())
+
+anomali_yaslar = df[(df["yas"] < 0) | (df["yas"] > 100)]
+print(len(anomali_yaslar))
+print(anomali_yaslar[["yas", "gelir", "sehir"]])
+
+sayisal_df = df.select_dtypes(include=np.number)
+print(sayisal_df.describe().T)
+
+istatistik_tablosu = pd.DataFrame({
+    "Skewness": sayisal_df.skew(),
+    "Kurtosis": sayisal_df.kurtosis()
+})
+print(istatistik_tablosu)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+sns.histplot(df["aylik_harcama"].dropna(), kde=True, ax=axes[0], color="teal")
+sns.boxplot(x=df["gelir"].dropna(), ax=axes[1], color="coral")
+plt.tight_layout()
+plt.show()
+
+kategorik_sutunlar = ["sehir", "abonelik_tipi", "memnuniyet_puani", "churn"]
+
+for col in kategorik_sutunlar:
+    dagilim = pd.DataFrame({
+        "Adet": df[col].value_counts(dropna=False),
+        "Yuzde (%)": df[col].value_counts(dropna=False, normalize=True) * 100
+    })
+    print(f"\n{col.upper()}")
+    print(dagilim)
+
+korelasyon = df.select_dtypes(include=np.number).corr()
+print(korelasyon)
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(korelasyon, annot=True, fmt=".2f", cmap="vlag", vmin=-1, vmax=1, linewidths=0.5)
+plt.show()
